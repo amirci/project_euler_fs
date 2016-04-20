@@ -4,6 +4,7 @@ open System.IO
 type Player = | Player1 | Player2
 
 let cards = ['0';'1';'2'; '3'; '4'; '5'; '6'; '7'; '8'; '9'; 'T'; 'J'; 'Q'; 'K'; 'A']
+let royal = cards |> List.skip 10 |> Array.ofList
 let cardOrder c = cards |> List.findIndex ((=) c)
 let highToLow = cardOrder >> (-) 15
 
@@ -24,18 +25,24 @@ let handValue str =
 
   let isFlush    = suits  |> Array.distinct |> Array.length |> (=) 1 // same suit
   let isStraight = values |> isInfix // consecutive
-  let isRoyal    = values = [|'T'; 'J'; 'Q'; 'K'; 'A'|]
+  let isRoyal    = values = royal
+
+  let (|FourOfAKind|_|)  = function | [|(_, 4); _|]            & v -> v |> Array.map fst |> String |> Some | _ -> None
+  let (|ThreeOfAKind|_|) = function | [|(_, 3); (_, 1); _|]    & v -> v |> Array.map fst |> String |> Some | _ -> None
+  let (|FullHouse|_|)    = function | [|(_, 3); (_, 2)|]       & v -> v |> Array.map fst |> String |> Some | _ -> None
+  let (|TwoPairs|_|)     = function | [|(_, 2); (_, 2); _|]    & v -> v |> Array.map fst |> String |> Some | _ -> None 
+  let (|OnePair|_|)      = function | [|(_, 2); (_, 1); _; _|] & v -> v |> Array.map fst |> String |> Some | _ -> None
 
   match freq hand with
   | _ when isFlush && isRoyal     -> "900000"
   | _ when isFlush && isStraight  -> "8" + valuesH2L
-  | [|(c1, 4); (c2, 1)|]          -> "7000" + ([|c1; c2|] |> String)
-  | [|(c1, 3); (c2, 2)|]          -> "6000" + ([|c1; c2|] |> String)
+  | FourOfAKind s                 -> "7000" + s
+  | FullHouse   s                 -> "6000" + s
   | _ when isFlush                -> "5" + valuesH2L
   | _ when isStraight             -> "4" + valuesH2L
-  | [|(c1, 3); (c2, 1); (c3, 1)|] -> "300" + ([|c1; c2; c3|] |> String)
-  | [|(c1, 2); (c2, 2); (c3, 1)|] -> "200" + ([|c1; c2; c3|] |> String)
-  | [|(c1, 2); (c2, 1); (c3, 1); (c4, 1)|] -> "10" + String(c1, 1) + ([|c2; c3; c4|] |> String)
+  | ThreeOfAKind s                -> "300" + s
+  | TwoPairs s                    -> "200" + s
+  | OnePair s                     -> "10" + s
   | _ -> "0" + valuesH2L
 
 
