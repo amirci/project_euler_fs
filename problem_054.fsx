@@ -27,11 +27,13 @@ let handValue str =
   let isStraight = values |> isInfix // consecutive
   let isRoyal    = values = royal
 
-  let (|FourOfAKind|_|)  = function | [|(_, 4); _|]            & v -> v |> Array.map fst |> String |> Some | _ -> None
-  let (|ThreeOfAKind|_|) = function | [|(_, 3); (_, 1); _|]    & v -> v |> Array.map fst |> String |> Some | _ -> None
-  let (|FullHouse|_|)    = function | [|(_, 3); (_, 2)|]       & v -> v |> Array.map fst |> String |> Some | _ -> None
-  let (|TwoPairs|_|)     = function | [|(_, 2); (_, 2); _|]    & v -> v |> Array.map fst |> String |> Some | _ -> None 
-  let (|OnePair|_|)      = function | [|(_, 2); (_, 1); _; _|] & v -> v |> Array.map fst |> String |> Some | _ -> None
+  let expFreq e a = a |> Array.map snd |> function | v when v = e -> a |> Array.map fst |> String |> Some | _ -> None
+
+  let (|FourOfAKind|_|)  = expFreq [|4;1|]
+  let (|ThreeOfAKind|_|) = expFreq [|3;1;1|]
+  let (|FullHouse|_|)    = expFreq [|3;2|]
+  let (|TwoPairs|_|)     = expFreq [|2;2;1|]
+  let (|OnePair|_|)      = expFreq [|2;1;1;1|]
 
   match freq hand with
   | _ when isFlush && isRoyal     -> "900000"
